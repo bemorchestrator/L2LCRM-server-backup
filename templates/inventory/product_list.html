@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<section>
+    <div class="container mx-auto px-4 py-6">
+        <div class="relative overflow-hidden bg-white shadow-md sm:rounded-lg">
+            <!-- Header with stats and action buttons -->
+            <div class="flex flex-col px-4 py-3 space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 lg:space-x-4">
+                <div class="flex items-center flex-1 space-x-4">
+                    <h5 class="text-lg font-semibold">
+                        <span class="text-gray-500">All Products:</span>
+                        <span class="dark:text-white">{{ products|length }}</span>
+                    </h5>
+                </div>
+                <div class="flex flex-row flex-shrink-0 space-x-3 md:flex-row md:items-center lg:justify-end">
+                    <!-- Delete Button -->
+                    <button
+                        type="button"
+                        class="flex items-center justify-center w-10 h-10 text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 rounded-full focus:outline-none dark:bg-red-500 dark:hover:bg-red-600 dark:focus:ring-red-800"
+                        id="bulkDeleteButton"
+                    >
+                        <!-- Delete Icon -->
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M6 3V4H4V6H16V4H14V3H6ZM6 6V15C6 16.1046 6.89543 17 8 17H12C13.1046 17 14 16.1046 14 15V6H6Z" />
+                        </svg>
+                    </button>
+
+                    <!-- Add New Product Button -->
+                    <button 
+                        type="button" 
+                        class="flex items-center justify-center w-10 h-10 text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 rounded-full focus:outline-none dark:bg-green-500 dark:hover:bg-green-600 dark:focus:ring-green-800" 
+                        id="openModalButton"
+                    >
+                        <!-- Plus Icon -->
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0V11H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Product Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-[#131313] dark:text-gray-400">
+                        <tr>
+                            <th scope="col" class="p-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <input id="checkbox-all" type="checkbox" class="w-4 h-4 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                    <label for="checkbox-all" class="sr-only">checkbox</label>
+                                </div>
+                            </th>
+                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Product</th>
+                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Supplier</th>
+                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Currency</th>
+                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Price</th>
+                            <th scope="col" class="px-4 py-3 whitespace-nowrap">UOM</th>
+                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Discountable (All)</th>
+                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Discountable (Members)</th>
+                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Active</th>
+                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr id="product-row-{{ product.id }}" class="border-b dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <td class="w-4 px-4 py-3 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <input id="checkbox-{{ product.id }}" name="product_ids" value="{{ product.id }}" type="checkbox" class="w-4 h-4 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                    <label for="checkbox-{{ product.id }}" class="sr-only">checkbox</label>
+                                </div>
+                            </td>
+                            <th scope="row" class="flex items-center px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-gray-500">
+                                {% if product.photo %}
+                                    <img src="{{ product.photo.url }}" alt="{{ product.item_name }}" class="w-8 h-8 mr-3 object-cover rounded">
+                                {% else %}
+                                    <img src="{% static 'images/placeholder.png' %}" alt="{{ product.item_name }}" class="w-8 h-8 mr-3 object-cover rounded">
+                                {% endif %}
+                                {{ product.item_name }}  
+                            </th>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ product.supplier }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ product.currency_code }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">${{ product.retail_price }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ product.uom }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ product.discountable_all|yesno:"Yes,No" }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ product.discountable_members|yesno:"Yes,No" }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ product.active|yesno:"Yes,No" }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">
+                                <!-- Individual Delete Button -->
+                                <button
+                                    type="button"
+                                    class="text-red-600 hover:text-red-800 focus:outline-none"
+                                    onclick="deleteProduct('{{ product.id }}')"
+                                >
+                                    <!-- Delete Icon -->
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M6 3V4H4V6H16V4H14V3H6ZM6 6V15C6 16.1046 6.89543 17 8 17H12C13.1046 17 14 16.1046 14 15V6H6Z" />
+                                    </svg>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal Background -->
+<div id="modal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <!-- Modal Content -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-2xl mx-4">
+        <div class="flex justify-between items-center px-4 py-3 border-b dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200">
+                Add New Product
+            </h3>
+            <button id="closeModalButton" class="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <form method="POST" enctype="multipart/form-data" action="{% url 'add_product' %}">
+            {% csrf_token %}
+            <div class="px-4 py-5">
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        {{ form.item_name }}
+                        {% if form.item_name.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.item_name.errors }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {{ form.supplier }}
+                        {% if form.supplier.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.supplier.errors }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {{ form.currency_code }}
+                        {% if form.currency_code.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.currency_code.errors }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {{ form.retail_price }}
+                        {% if form.retail_price.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.retail_price.errors }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {{ form.uom }}
+                        {% if form.uom.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.uom.errors }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center">
+                        {{ form.discountable_all }}
+                        <label for="id_discountable_all" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Discountable (All)</label>
+                        {% if form.discountable_all.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.discountable_all.errors }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center">
+                        {{ form.discountable_members }}
+                        <label for="id_discountable_members" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Discountable (Members)</label>
+                        {% if form.discountable_members.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.discountable_members.errors }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center">
+                        {{ form.active }}
+                        <label for="id_active" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Active</label>
+                        {% if form.active.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.active.errors }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {{ form.photo }}
+                        {% if form.photo.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.photo.errors }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="px-4 py-3 border-t dark:border-gray-700 flex justify-end">
+                <button type="button" id="closeModalButtonFooter" class="mr-3 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600">
+                    Save Product
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Include SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- JavaScript for Modal and Delete Functionality -->
+<script>
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrfToken = getCookie('csrftoken');
+
+    // Modal functionality
+    const openModalButton = document.getElementById('openModalButton');
+    const modal = document.getElementById('modal');
+    const closeModalButtons = document.querySelectorAll('#closeModalButton, #closeModalButtonFooter');
+
+    openModalButton.addEventListener('click', () => {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    });
+
+    closeModalButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        });
+    });
+
+    // Close modal when clicking outside the modal content
+    window.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    });
+
+    // Handle 'Select All' checkbox
+    document.getElementById('checkbox-all').addEventListener('change', function() {
+        let checkboxes = document.querySelectorAll('input[name="product_ids"]');
+        checkboxes.forEach((checkbox) => {
+            checkbox.checked = this.checked;
+        });
+    });
+
+    // Bulk delete functionality
+    document.getElementById('bulkDeleteButton').addEventListener('click', function() {
+        // Collect selected product IDs
+        let checkboxes = document.querySelectorAll('input[name="product_ids"]:checked');
+        if (checkboxes.length === 0) {
+            Swal.fire(
+                'No products selected',
+                'Please select at least one product to delete.',
+                'warning'
+            );
+            return;
+        }
+
+        let productIds = [];
+        checkboxes.forEach((checkbox) => {
+            productIds.push(checkbox.value);
+        });
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You will not be able to recover these products!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete them!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Prepare form data
+                let formData = new FormData();
+                productIds.forEach((id) => {
+                    formData.append('product_ids', id);
+                });
+                // Send AJAX request to bulk delete products
+                fetch("{% url 'bulk_delete_products' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                    },
+                    credentials: 'same-origin',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire(
+                            'Deleted!',
+                            'Your selected products have been deleted.',
+                            'success'
+                        );
+                        // Remove the deleted product rows from the table
+                        productIds.forEach((productId) => {
+                            let row = document.getElementById('product-row-' + productId);
+                            if (row) {
+                                row.remove();
+                            }
+                        });
+                    } else {
+                        Swal.fire(
+                            'Error!',
+                            data.message || 'An error occurred.',
+                            'error'
+                        );
+                    }
+                })
+                .catch((error) => {
+                    Swal.fire(
+                        'Error!',
+                        'An error occurred.',
+                        'error'
+                    );
+                });
+            }
+        });
+    });
+
+    // Individual delete functionality
+    function deleteProduct(productId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You will not be able to recover this product!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Prepare form data
+                let formData = new FormData();
+                // Send AJAX request to delete product
+                fetch("{% url 'delete_product' product_id=0 %}".replace('0', productId), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                    },
+                    credentials: 'same-origin',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire(
+                            'Deleted!',
+                            'Your product has been deleted.',
+                            'success'
+                        );
+                        // Remove the deleted product row from the table
+                        let row = document.getElementById('product-row-' + productId);
+                        if (row) {
+                            row.remove();
+                        }
+                    } else {
+                        Swal.fire(
+                            'Error!',
+                            data.message || 'An error occurred.',
+                            'error'
+                        );
+                    }
+                })
+                .catch((error) => {
+                    Swal.fire(
+                        'Error!',
+                        'An error occurred.',
+                        'error'
+                    );
+                });
+            }
+        });
+    }
+</script>
+
+{% endblock %}

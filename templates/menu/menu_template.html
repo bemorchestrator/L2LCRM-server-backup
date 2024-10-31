@@ -1,0 +1,49 @@
+<!-- templates/menu/menu_template.html -->
+
+<nav>
+    {% if menus %}
+        {% for menu_data in menus %}
+            <div class="menu-section mb-4">
+                <!-- Display the menu name and align it vertically with menu items -->
+                <div class="flex items-center">
+                    <h3 class="menu-title font-bold text-sm mb-2">{{ menu_data.menu.name }}</h3>
+                </div>
+                
+                <!-- Menu Items -->
+                <ul class="pl-4 pr-5">
+                    {% for item_data in menu_data.items %}
+                        <li class="mb-1 ">
+                            <a href="{{ item_data.item.url|default:'#' }}" 
+                            class="flex items-center p-2 rounded hover:bg-white hover:text-black text-sm
+                            {% if request.path == item_data.item.url %}bg-[#C4C508] text-white{% endif %}">
+                                <!-- Icon (if available) -->
+                                {% if item_data.item.icon %}
+                                    <i class="{{ item_data.item.icon }} mr-2 text-lg"></i>
+                                {% endif %}
+                                <span class="menu-text">{{ item_data.item.name }}</span>
+                            </a>
+                            
+                            <!-- Display child items if present -->
+                            {% if item_data.children %}
+                                <ul class="pl-6 mt-1">
+                                    {% for child_data in item_data.children %}
+                                        <li class="mb-0.5">
+                                            <a href="{{ child_data.item.url|default:'#' }}" 
+                                               class="flex items-center p-2 rounded hover:bg-gray-200 text-sm
+                                               {% if request.path == child_data.item.url %}bg-[#C4C508] text-white{% endif %}">
+                                                <i class="{{ child_data.item.icon|default:'bi bi-file-earmark-text-fill' }} mr-2 text-sm"></i>
+                                                <span class="menu-text">{{ child_data.item.name }}</span>
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-sm">No menu available.</p>
+    {% endif %}
+</nav>

@@ -1,0 +1,388 @@
+<!-- templates/base.html -->
+{% load menu_tags %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Meta tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Leaft To Life{% endblock %}</title>
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="flex flex-col h-full bg-gray-50" data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
+    <div class="flex flex-col min-h-screen">
+        <!-- Sidebar -->
+        <div id="sidebar" class="bg-[#131313] flex flex-col fixed top-0 left-0 h-screen transition-transform duration-300 ease-in-out z-40 overflow-y-auto w-60 transform -translate-x-full md:translate-x-0">
+            <!-- Logo Container -->
+            <div class="flex items-center justify-center py-4 px-4 relative logo-container">
+                <img src="{% static 'images/l2l_logo.jpg' %}" alt="GYOCC Logo" class="logo-full hidden md:block rounded-lg">
+                <img src="{% static 'images/l2l_logo.jpg' %}" alt="GYOCC Logo" class="logo-short md:hidden rounded-lg">
+                <i id="toggle-btn" class="bi bi-caret-left text-white cursor-pointer toggle-icon absolute right-4 top-1/2 transform -translate-y-1/2"></i>
+            </div>
+
+            <!-- Dynamic Menu Start -->
+            <nav class="mt-4 space-y-4 text-gray-300 pl-6">
+                {% load_menu %}
+            </nav>
+            <!-- Dynamic Menu End -->
+
+            <!-- Single Logout Link at the Bottom -->
+            <div class="mt-auto px-4 py-2">
+                <form id="logout-form" action="" method="post" class="hidden">
+                    {% csrf_token %}
+                </form>
+                <a href="#" class="flex items-center pl-6 py-3 hover:bg-blue-700 rounded w-full text-sm logout-link" 
+                   onclick="document.getElementById('logout-form').submit(); return false;">
+                    <i class="bi bi-box-arrow-left text-white mr-3 w-6 flex-shrink-0"></i>
+                    <span class="menu-text text-white">Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Overlay (for mobile) -->
+        <div id="overlay" class="fixed inset-0 bg-black opacity-50 hidden z-30"></div>
+
+        <!-- Content -->
+        <div id="content" class="flex-1 flex flex-col p-6 bg-[#F2F2F2] text-gray-900 transition-all duration-300 ease-in-out ml-0 md:ml-60 lg:ml-60">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-4 bg-[#F2F2F2]">
+                <div class="flex items-center space-x-4">
+                    <div class="md:hidden">
+                        <button id="hamburger-btn" class="text-gray-400 focus:outline-none">
+                            <i class="bi bi-list text-2xl"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <img src="{% static 'images/bell.png' %}" alt="Notifications" class="w-10 h-10 cursor-pointer" id="notification-icon">
+                        {% with notif_count=notifications|length %}
+                        {% with fr_count=friend_requests|length %}
+                        {% with total_notifications=notif_count|add:fr_count %}
+                        {% if total_notifications|add:"0" %}
+                            <span id="notification-count" class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-2">
+                                {{ total_notifications }}
+                            </span>
+                        {% endif %}
+                        {% endwith %}
+                        {% endwith %}
+                        {% endwith %}
+                        <div id="dropdown" class="hidden absolute right-0 mt-2 py-2 w-80 bg-white rounded-lg shadow-xl z-50">
+                            <div id="dropdown-content">
+                                {% if notifications %}
+                                    {% for notification in notifications %}
+                                        <div class="flex items-center px-4 py-2 hover:bg-gray-100 notification-item">
+                                            <div class="flex-1">
+                                                <p class="block text-gray-800">{{ notification.message }}</p>
+                                                <a href="#" data-notification-id="{{ notification.id }}" class="text-blue-500 hover:underline mark-as-read">Mark as read</a>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                                {% if friend_requests %}
+                                    {% for fr in friend_requests %}
+                                        <div class="flex items-center px-4 py-2 hover:bg-gray-100 notification-item">
+                                            {% if fr.sender.member.profile_photo %}
+                                                <img class="w-10 h-10 rounded-full mr-3" src="{{ fr.sender.member.profile_photo.url }}" alt="{{ fr.sender.username }}">
+                                            {% else %}
+                                                <img class="w-10 h-10 rounded-full mr-3" src="{% static 'images/default-profile.png' %}" alt="{{ fr.sender.username }}">
+                                            {% endif %}
+                                            <div class="flex-1">
+                                                <p class="text-gray-800">{{ fr.sender.username }} sent you a friend request.</p>
+                                                <div class="flex space-x-2 mt-1">
+                                                    <button class="accept-friend-request-btn bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded" data-request-id="{{ fr.id }}">Accept</button>
+                                                    <button class="reject-friend-request-btn bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded" data-request-id="{{ fr.id }}">Reject</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                                {% if not notifications and not friend_requests %}
+                                    <p class="px-4 py-2 text-gray-600">No new notifications.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-center items-center">
+                        <div class="w-10 h-10 rounded-full overflow-hidden">
+                            {% if request.user.is_authenticated and request.user.member.profile_photo %}
+                                <img class="profile-image rounded-full w-10 h-10 object-cover" src="{{ request.user.member.profile_photo.url }}" alt="{{ request.user.get_full_name }}">
+                            {% else %}
+                                <img class="profile-image rounded-full w-10 h-10 object-cover" src="{% static 'images\man.png' %}" alt="Default Avatar">
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page Content -->
+            <div class="flex-1 flex flex-col p-6 bg-[#F2F2F2] text-gray-900 transition-all duration-300 ease-in-out overflow-y-auto h-screen">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('toggle-btn');
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const overlay = document.getElementById('overlay');
+            const menuTexts = document.querySelectorAll('.menu-text');
+            const content = document.getElementById('content');
+            const isAuthenticated = document.body.getAttribute('data-authenticated') === 'true';
+            let isCollapsed = false;
+
+            if (isAuthenticated) {
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('click', () => {
+                        sidebar.classList.toggle('collapsed');
+                        if (sidebar.classList.contains('collapsed')) {
+                            toggleBtn.classList.replace('bi-caret-left', 'bi-caret-right');
+                            menuTexts.forEach(menuText => menuText.classList.add('hidden'));
+                            isCollapsed = true;
+                            content.classList.remove('ml-60');
+                            content.classList.add('ml-16');
+                        } else {
+                            toggleBtn.classList.replace('bi-caret-right', 'bi-caret-left');
+                            menuTexts.forEach(menuText => menuText.classList.remove('hidden'));
+                            isCollapsed = false;
+                            content.classList.remove('ml-16');
+                            content.classList.add('ml-60');
+                        }
+                    });
+                }
+
+                if (hamburgerBtn) {
+                    hamburgerBtn.addEventListener('click', () => {
+                        sidebar.classList.remove('-translate-x-full');
+                        overlay.classList.remove('hidden');
+                    });
+                }
+
+                if (overlay) {
+                    overlay.addEventListener('click', () => {
+                        sidebar.classList.add('-translate-x-full');
+                        overlay.classList.add('hidden');
+                    });
+                }
+
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth >= 768) {
+                        sidebar.classList.remove('-translate-x-full');
+                        overlay.classList.add('hidden');
+                    } else {
+                        if (!isCollapsed) {
+                            sidebar.classList.add('-translate-x-full');
+                        }
+                    }
+                });
+            }
+
+            const notificationIcon = document.getElementById('notification-icon');
+            const dropdown = document.getElementById('dropdown');
+
+            if (notificationIcon && dropdown) {
+                notificationIcon.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('hidden');
+                });
+
+                window.addEventListener('click', (event) => {
+                    if (!dropdown.contains(event.target) && !notificationIcon.contains(event.target)) {
+                        dropdown.classList.add('hidden');
+                    }
+                });
+            }
+        });
+    </script>
+
+    <style>
+        #sidebar {
+            width: 15rem;
+        }
+
+        #sidebar.collapsed {
+            width: 4rem;
+        }
+
+        .logo-full {
+            height: 3.5rem;
+            transition: transform 0.3s ease, width 0.3s ease;
+        }
+
+        .logo-short {
+            height: 3rem;
+            transition: transform 0.3s ease, width 0.3s ease;
+        }
+
+        #sidebar.collapsed .logo-full {
+            display: none;
+        }
+
+        #sidebar.collapsed .logo-short {
+            display: block;
+            margin: 0 auto;
+        }
+
+        .toggle-icon {
+            font-size: 1.25rem;
+            transition: transform 0.3s ease, right 0.3s ease;
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            right: 1rem;
+            transform: translateY(-50%);
+            z-index: 50;
+        }
+
+        #sidebar.collapsed .toggle-icon {
+            transform: translateY(-50%) rotate(180deg);
+            right: -0.5rem;
+        }
+
+        #sidebar.collapsed .logout-link {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        #sidebar.collapsed .logout-link .menu-text {
+            display: none;
+        }
+
+        .toggle-icon {
+            cursor: pointer;
+        }
+
+        #content {
+            margin-left: 15rem;
+            transition: margin-left 0.3s ease;
+        }
+
+        #sidebar.collapsed ~ #content {
+            margin-left: 4rem;
+        }
+
+        @media (max-width: 1024px) {
+            #sidebar {
+                transform: -translate-x-full;
+                width: 15rem;
+            }
+
+            #sidebar.collapsed {
+                width: 4rem;
+            }
+
+            #sidebar.active {
+                transform: translate-x-0;
+            }
+
+            #sidebar .toggle-icon {
+                right: -0.5rem;
+                top: 1rem;
+                transform: none;
+            }
+
+            #sidebar.collapsed .toggle-icon {
+                right: -0.5rem;
+                transform: rotate(180deg);
+            }
+
+            #content {
+                margin-left: 0;
+            }
+
+            #sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                z-index: 40;
+            }
+        }
+
+        #sidebar.collapsed nav {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #sidebar.collapsed nav ul {
+            padding-left: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #sidebar.collapsed nav ul li a {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        #sidebar.collapsed nav .menu-section {
+            text-align: center;
+        }
+
+        #sidebar.collapsed nav .menu-section h3 {
+            display: none;
+        }
+
+        #sidebar.collapsed nav ul ul {
+            display: none;
+        }
+
+        #sidebar.collapsed nav ul li a i {
+            margin-right: 0;
+            font-size: 1.25rem;
+        }
+
+        #sidebar.collapsed .logout-link {
+            justify-content: center;
+        }
+
+        #sidebar.collapsed .logout-link i {
+            margin-right: 0;
+            font-size: 1.25rem;
+        }
+
+        #sidebar.collapsed .logo-container {
+            justify-content: center;
+            padding-left: 0;
+        }
+
+        #sidebar.collapsed nav ul li a:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            margin-left: 10px;
+            background-color: #333;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            font-size: 0.875rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        #sidebar.collapsed nav ul li a:hover::after {
+            opacity: 1;
+        }
+    </style>
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>
