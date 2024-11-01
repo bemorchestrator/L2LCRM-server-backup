@@ -1,9 +1,11 @@
+<!-- inventory/templates/inventory/product_list.html -->
+
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
 <section>
     <div class="container mx-auto px-4 py-6">
-        <div class="relative overflow-hidden bg-white shadow-md sm:rounded-lg">
+        <div class="relative overflow-hidden bg-white shadow-md sm:rounded-lg dark:bg-[#1a1a1a]">
             <!-- Header with stats and action buttons -->
             <div class="flex flex-col px-4 py-3 space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 lg:space-x-4">
                 <div class="flex items-center flex-1 space-x-4">
@@ -13,14 +15,15 @@
                     </h5>
                 </div>
                 <div class="flex flex-row flex-shrink-0 space-x-3 md:flex-row md:items-center lg:justify-end">
-                    <!-- Delete Button -->
+                    <!-- Bulk Delete Button -->
                     <button
                         type="button"
                         class="flex items-center justify-center w-10 h-10 text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 rounded-full focus:outline-none dark:bg-red-500 dark:hover:bg-red-600 dark:focus:ring-red-800"
                         id="bulkDeleteButton"
+                        title="Delete Selected Products"
                     >
                         <!-- Delete Icon -->
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M6 3V4H4V6H16V4H14V3H6ZM6 6V15C6 16.1046 6.89543 17 8 17H12C13.1046 17 14 16.1046 14 15V6H6Z" />
                         </svg>
                     </button>
@@ -30,9 +33,10 @@
                         type="button" 
                         class="flex items-center justify-center w-10 h-10 text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 rounded-full focus:outline-none dark:bg-green-500 dark:hover:bg-green-600 dark:focus:ring-green-800" 
                         id="openModalButton"
+                        title="Add New Product"
                     >
                         <!-- Plus Icon -->
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0V11H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
                         </svg>
                     </button>
@@ -47,7 +51,7 @@
                             <th scope="col" class="p-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <input id="checkbox-all" type="checkbox" class="w-4 h-4 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                    <label for="checkbox-all" class="sr-only">checkbox</label>
+                                    <label for="checkbox-all" class="sr-only">Select all products</label>
                                 </div>
                             </th>
                             <th scope="col" class="px-4 py-3 whitespace-nowrap">Product</th>
@@ -63,18 +67,30 @@
                     </thead>
                     <tbody>
                         {% for product in products %}
-                        <tr id="product-row-{{ product.id }}" class="border-b dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <tr id="product-row-{{ product.id }}" class="hover:bg-gray-100 dark:hover:bg-gray-700">
                             <td class="w-4 px-4 py-3 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <input id="checkbox-{{ product.id }}" name="product_ids" value="{{ product.id }}" type="checkbox" class="w-4 h-4 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                    <label for="checkbox-{{ product.id }}" class="sr-only">checkbox</label>
+                                    <label for="checkbox-{{ product.id }}" class="sr-only">Select product</label>
                                 </div>
                             </td>
                             <th scope="row" class="flex items-center px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-gray-500">
                                 {% if product.photo %}
-                                    <img src="{{ product.photo.url }}" alt="{{ product.item_name }}" class="w-8 h-8 mr-3 object-cover rounded">
+                                    <img 
+                                        src="{{ product.photo.url }}" 
+                                        alt="{{ product.item_name }}" 
+                                        class="w-8 h-8 mr-3 object-cover rounded product-image cursor-pointer" 
+                                        data-full-url="{{ product.photo.url }}"
+                                        title="Click to view full image"
+                                    >
                                 {% else %}
-                                    <img src="{% static 'images/placeholder.png' %}" alt="{{ product.item_name }}" class="w-8 h-8 mr-3 object-cover rounded">
+                                    <img 
+                                        src="{% static 'images/placeholder.png' %}" 
+                                        alt="{{ product.item_name }}" 
+                                        class="w-8 h-8 mr-3 object-cover rounded product-image cursor-pointer" 
+                                        data-full-url="{% static 'images/placeholder.png' %}"
+                                        title="Click to view full image"
+                                    >
                                 {% endif %}
                                 {{ product.item_name }}  
                             </th>
@@ -85,15 +101,29 @@
                             <td class="px-4 py-2 whitespace-nowrap">{{ product.discountable_all|yesno:"Yes,No" }}</td>
                             <td class="px-4 py-2 whitespace-nowrap">{{ product.discountable_members|yesno:"Yes,No" }}</td>
                             <td class="px-4 py-2 whitespace-nowrap">{{ product.active|yesno:"Yes,No" }}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">
+                            <td class="px-4 py-2 whitespace-nowrap flex space-x-2">
+                                <!-- Edit Button -->
+                                <button
+                                    type="button"
+                                    class="text-blue-600 hover:text-blue-800 focus:outline-none"
+                                    onclick="editProduct('{{ product.id }}')"
+                                    title="Edit Product"
+                                >
+                                    <!-- Edit Icon -->
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 18a1 1 0 01-1-1v-4.586l10.293-10.293a1 1 0 011.414 0l2.586 2.586a1 1 0 010 1.414L9.414 17H5z" />
+                                    </svg>
+                                </button>
+
                                 <!-- Individual Delete Button -->
                                 <button
                                     type="button"
                                     class="text-red-600 hover:text-red-800 focus:outline-none"
                                     onclick="deleteProduct('{{ product.id }}')"
+                                    title="Delete Product"
                                 >
                                     <!-- Delete Icon -->
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M6 3V4H4V6H16V4H14V3H6ZM6 6V15C6 16.1046 6.89543 17 8 17H12C13.1046 17 14 16.1046 14 15V6H6Z" />
                                     </svg>
                                 </button>
@@ -110,9 +140,9 @@
 <!-- Modal Background -->
 <div id="modal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
     <!-- Modal Content -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-2xl mx-4">
+    <div class="bg-white dark:bg-[#131313] rounded-lg shadow-lg w-full max-w-2xl mx-4">
         <div class="flex justify-between items-center px-4 py-3 border-b dark:border-gray-700">
-            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200">
+            <h3 id="modalTitle" class="text-lg font-semibold text-gray-700 dark:text-gray-200">
                 Add New Product
             </h3>
             <button id="closeModalButton" class="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white">
@@ -121,35 +151,40 @@
                 </svg>
             </button>
         </div>
-        <form method="POST" enctype="multipart/form-data" action="{% url 'add_product' %}">
+        <form id="productForm" method="POST" enctype="multipart/form-data" action="{% url 'add_product' %}">
             {% csrf_token %}
             <div class="px-4 py-5">
                 <div class="grid grid-cols-1 gap-4">
                     <div>
+                        {{ form.item_name.label_tag }}
                         {{ form.item_name }}
                         {% if form.item_name.errors %}
                             <p class="text-red-500 text-xs mt-1">{{ form.item_name.errors }}</p>
                         {% endif %}
                     </div>
                     <div>
+                        {{ form.supplier.label_tag }}
                         {{ form.supplier }}
                         {% if form.supplier.errors %}
                             <p class="text-red-500 text-xs mt-1">{{ form.supplier.errors }}</p>
                         {% endif %}
                     </div>
                     <div>
+                        {{ form.currency_code.label_tag }}
                         {{ form.currency_code }}
                         {% if form.currency_code.errors %}
                             <p class="text-red-500 text-xs mt-1">{{ form.currency_code.errors }}</p>
                         {% endif %}
                     </div>
                     <div>
+                        {{ form.retail_price.label_tag }}
                         {{ form.retail_price }}
                         {% if form.retail_price.errors %}
                             <p class="text-red-500 text-xs mt-1">{{ form.retail_price.errors }}</p>
                         {% endif %}
                     </div>
                     <div>
+                        {{ form.uom.label_tag }}
                         {{ form.uom }}
                         {% if form.uom.errors %}
                             <p class="text-red-500 text-xs mt-1">{{ form.uom.errors }}</p>
@@ -177,6 +212,7 @@
                         {% endif %}
                     </div>
                     <div>
+                        {{ form.photo.label_tag }}
                         {{ form.photo }}
                         {% if form.photo.errors %}
                             <p class="text-red-500 text-xs mt-1">{{ form.photo.errors }}</p>
@@ -188,7 +224,7 @@
                 <button type="button" id="closeModalButtonFooter" class="mr-3 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
                     Cancel
                 </button>
-                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600">
+                <button type="submit" id="submitButton" class="px-4 py-2 bg-[#C4C508] text-white rounded-lg hover:bg-[#A4A308] dark:bg-[#C4C508] dark:hover:bg-[#A4A308]">
                     Save Product
                 </button>
             </div>
@@ -199,9 +235,9 @@
 <!-- Include SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- JavaScript for Modal and Delete Functionality -->
+<!-- JavaScript for Modal, Delete, and Edit Functionality -->
 <script>
-    // Get CSRF token
+    // Function to get CSRF token from cookies
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -218,20 +254,30 @@
     }
     const csrfToken = getCookie('csrftoken');
 
-    // Modal functionality
+    // Modal elements
     const openModalButton = document.getElementById('openModalButton');
     const modal = document.getElementById('modal');
     const closeModalButtons = document.querySelectorAll('#closeModalButton, #closeModalButtonFooter');
+    const productForm = document.getElementById('productForm');
+    const modalTitle = document.getElementById('modalTitle');
+    const submitButton = document.getElementById('submitButton');
 
+    let isEditMode = false;
+    let editProductId = null;
+
+    // Open modal for adding new product
     openModalButton.addEventListener('click', () => {
+        resetForm();
         modal.classList.remove('hidden');
         modal.classList.add('flex');
     });
 
+    // Close modal
     closeModalButtons.forEach(button => {
         button.addEventListener('click', () => {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+            resetForm();
         });
     });
 
@@ -240,8 +286,19 @@
         if (event.target === modal) {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+            resetForm();
         }
     });
+
+    // Reset form to default (add mode)
+    function resetForm() {
+        isEditMode = false;
+        editProductId = null;
+        productForm.reset();
+        productForm.action = "{% url 'add_product' %}";
+        modalTitle.textContent = "Add New Product";
+        submitButton.textContent = "Save Product";
+    }
 
     // Handle 'Select All' checkbox
     document.getElementById('checkbox-all').addEventListener('change', function() {
@@ -289,6 +346,7 @@
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
                     credentials: 'same-origin',
                     body: formData
@@ -346,6 +404,7 @@
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
                     credentials: 'same-origin',
                     body: formData
@@ -381,6 +440,190 @@
             }
         });
     }
+
+    // Handle Image Click to Show in Modal
+    document.querySelectorAll('.product-image').forEach(function(image) {
+        image.addEventListener('click', function() {
+            const fullImageUrl = this.getAttribute('data-full-url');
+            const altText = this.getAttribute('alt');
+            Swal.fire({
+                title: altText,
+                imageUrl: fullImageUrl,
+                imageAlt: altText,
+                showCloseButton: true,
+                showConfirmButton: false,
+                width: 'auto',
+                heightAuto: true,
+                customClass: {
+                    popup: 'p-0 rounded-lg',
+                    image: 'object-contain w-auto h-96' // Adjust size as needed
+                }
+            });
+        });
+    });
+
+    // Edit Product Functionality
+    function editProduct(productId) {
+    // Fetch product data via AJAX
+    fetch("{% url 'edit_product' product_id=0 %}".replace('0', productId), {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const product = data.product;
+            // Populate form fields
+            productForm.querySelector('input[name="item_name"]').value = product.item_name || '';
+            productForm.querySelector('input[name="supplier"]').value = product.supplier || '';
+            productForm.querySelector('input[name="currency_code"]').value = product.currency_code || '';
+            productForm.querySelector('input[name="retail_price"]').value = product.retail_price || '';
+            productForm.querySelector('input[name="uom"]').value = product.uom || '';
+            productForm.querySelector('input[name="discountable_all"]').checked = !!product.discountable_all;
+            productForm.querySelector('input[name="discountable_members"]').checked = !!product.discountable_members;
+            productForm.querySelector('input[name="active"]').checked = !!product.active;
+            // Change form action to update_product
+            productForm.action = "{% url 'update_product' product_id=0 %}".replace('0', product.id);
+            // Update modal title and button text
+            modalTitle.textContent = "Edit Product";
+            submitButton.textContent = "Update Product";
+            // Set edit mode flags
+            isEditMode = true;
+            editProductId = product.id;
+            // Open modal
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        } else {
+            Swal.fire(
+                'Error!',
+                data.message || 'Failed to fetch product data.',
+                'error'
+            );
+        }
+    })
+    .catch((error) => {
+        console.log('Error:', error);
+        Swal.fire(
+            'Error!',
+            'An error occurred while fetching product data.',
+            'error'
+        );
+    });
+}
+
+
+    // Handle form submission for editing
+    productForm.addEventListener('submit', function(event) {
+        if (isEditMode && editProductId) {
+            event.preventDefault(); // Prevent default form submission
+
+            const formData = new FormData(this);
+
+            fetch(productForm.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    Swal.fire(
+                        'Updated!',
+                        data.message,
+                        'success'
+                    );
+                    // Optionally, update the product row in the table with new data
+                    const updatedProduct = data.product;
+                    const row = document.getElementById('product-row-' + updatedProduct.id);
+                    if (row) {
+                        row.querySelector('th[scope="row"]').innerHTML = `
+                            {% if product.photo %}
+                                <img 
+                                    src="${updatedProduct.photo_url}" 
+                                    alt="${updatedProduct.item_name}" 
+                                    class="w-8 h-8 mr-3 object-cover rounded product-image cursor-pointer" 
+                                    data-full-url="${updatedProduct.photo_url}"
+                                    title="Click to view full image"
+                                >
+                            {% else %}
+                                <img 
+                                    src="{% static 'images/placeholder.png' %}" 
+                                    alt="${updatedProduct.item_name}" 
+                                    class="w-8 h-8 mr-3 object-cover rounded product-image cursor-pointer" 
+                                    data-full-url="{% static 'images/placeholder.png' %}"
+                                    title="Click to view full image"
+                                >
+                            {% endif %}
+                            ${updatedProduct.item_name}
+                        `;
+                        row.querySelector('td:nth-child(3)').textContent = updatedProduct.supplier;
+                        row.querySelector('td:nth-child(4)').textContent = updatedProduct.currency_code;
+                        row.querySelector('td:nth-child(5)').textContent = `$${updatedProduct.retail_price}`;
+                        row.querySelector('td:nth-child(6)').textContent = updatedProduct.uom;
+                        row.querySelector('td:nth-child(7)').textContent = updatedProduct.discountable_all;
+                        row.querySelector('td:nth-child(8)').textContent = updatedProduct.discountable_members;
+                        row.querySelector('td:nth-child(9)').textContent = updatedProduct.active;
+
+                        // Re-attach event listener for the new image
+                        row.querySelector('.product-image').addEventListener('click', function() {
+                            const fullImageUrl = this.getAttribute('data-full-url');
+                            const altText = this.getAttribute('alt');
+                            Swal.fire({
+                                title: altText,
+                                imageUrl: fullImageUrl,
+                                imageAlt: altText,
+                                showCloseButton: true,
+                                showConfirmButton: false,
+                                width: 'auto',
+                                heightAuto: true,
+                                customClass: {
+                                    popup: 'p-0 rounded-lg',
+                                    image: 'object-contain w-auto h-96' // Adjust size as needed
+                                }
+                            });
+                        });
+                    }
+                    // Close modal and reset form
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                    resetForm();
+                } else {
+                    Swal.fire(
+                        'Error!',
+                        data.message || 'An error occurred while updating the product.',
+                        'error'
+                    );
+                }
+            })
+            .catch((error) => {
+                Swal.fire(
+                    'Error!',
+                    'An error occurred while updating the product.',
+                    'error'
+                );
+            });
+        }
+    });
+
+    // Display SweetAlert2 notifications based on Django messages
+    {% if messages %}
+        {% for message in messages %}
+            Swal.fire({
+                icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}",
+                title: "{% if message.tags == 'success' %}Success{% elif message.tags == 'error' %}Error{% elif message.tags == 'warning' %}Warning{% else %}Notice{% endif %}",
+                text: "{{ message }}",
+                timer: 3000,
+                showConfirmButton: false
+            });
+        {% endfor %}
+    {% endif %}
 </script>
 
 {% endblock %}
