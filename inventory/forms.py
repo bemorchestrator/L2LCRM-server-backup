@@ -2,8 +2,12 @@
 
 from django import forms
 from .models import Product
+from suppliers.models import Supplier  
 
 class ProductForm(forms.ModelForm):
+    """
+    Form to create or update a product with supplier selection as a dropdown.
+    """
     class Meta:
         model = Product
         fields = [
@@ -15,15 +19,15 @@ class ProductForm(forms.ModelForm):
             'discountable_all', 
             'discountable_members', 
             'active', 
-            'photo'
+            'photo',
+            'quantity'
         ]
         widgets = {
             'item_name': forms.TextInput(attrs={
                 'placeholder': 'Item Name',
                 'class': 'block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white'
             }),
-            'supplier': forms.TextInput(attrs={
-                'placeholder': 'Supplier',
+            'supplier': forms.Select(attrs={
                 'class': 'block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white'
             }),
             'currency_code': forms.TextInput(attrs={
@@ -50,4 +54,13 @@ class ProductForm(forms.ModelForm):
             'active': forms.CheckboxInput(attrs={
                 'class': 'form-checkbox h-4 w-4 text-primary-600'
             }),
+            'quantity': forms.NumberInput(attrs={
+                'placeholder': 'Quantity',
+                'class': 'block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white'
+            }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super(ProductForm, self).__init__(*args, **kwargs)
+        # Populate the supplier dropdown with only active suppliers
+        self.fields['supplier'].queryset = Supplier.objects.filter(active=True)

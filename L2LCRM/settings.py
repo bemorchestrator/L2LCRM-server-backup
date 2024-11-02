@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'IAM',
     'menu',
     'inventory',
+    'suppliers',
 ]
 
 MIDDLEWARE = [

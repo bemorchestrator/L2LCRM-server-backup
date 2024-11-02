@@ -1,4 +1,4 @@
-<!-- inventory/templates/inventory/product_list.html -->
+<!-- suppliers/templates/suppliers/supplier_list.html -->
 
 {% extends "base.html" %}
 {% load static %}
@@ -10,8 +10,8 @@
             <div class="flex flex-col px-4 py-3 space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 lg:space-x-4">
                 <div class="flex items-center flex-1 space-x-4">
                     <h5 class="text-lg font-semibold">
-                        <span class="text-gray-500">All Products:</span>
-                        <span class="dark:text-white">{{ products|length }}</span>
+                        <span class="text-gray-500">All Suppliers:</span>
+                        <span class="dark:text-white">{{ suppliers|length }}</span>
                     </h5>
                 </div>
                 <div class="flex flex-row flex-shrink-0 space-x-3 md:flex-row md:items-center lg:justify-end">
@@ -20,7 +20,7 @@
                         type="button"
                         class="flex items-center justify-center w-10 h-10 text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 rounded-full focus:outline-none dark:bg-red-500 dark:hover:bg-red-600 dark:focus:ring-red-800"
                         id="bulkDeleteButton"
-                        title="Delete Selected Products"
+                        title="Delete Selected Suppliers"
                     >
                         <!-- Delete Icon -->
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -28,12 +28,12 @@
                         </svg>
                     </button>
 
-                    <!-- Add New Product Button -->
+                    <!-- Add New Supplier Button -->
                     <button 
                         type="button" 
                         class="flex items-center justify-center w-10 h-10 text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 rounded-full focus:outline-none dark:bg-green-500 dark:hover:bg-green-600 dark:focus:ring-green-800" 
                         id="openModalButton"
-                        title="Add New Product"
+                        title="Add New Supplier"
                     >
                         <!-- Plus Icon -->
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -43,7 +43,7 @@
                 </div>
             </div>
 
-            <!-- Product Table -->
+            <!-- Supplier Table -->
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 bg-white">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-[#131313] dark:text-gray-400">
@@ -51,67 +51,43 @@
                             <th scope="col" class="p-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <input id="checkbox-all" type="checkbox" class="w-4 h-4 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                    <label for="checkbox-all" class="sr-only">Select all products</label>
+                                    <label for="checkbox-all" class="sr-only">Select all suppliers</label>
                                 </div>
                             </th>
-                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Product</th>
-                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Quantity</th>
-                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Supplier</th>
-                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Currency</th>
-                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Price</th>
-                            <th scope="col" class="px-4 py-3 whitespace-nowrap">UOM</th>
-                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Discountable (All)</th>
-                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Discountable (Members)</th>
+                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Supplier No</th>
+                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Supplier Name</th>
+                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Contact</th>
+                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Country</th>
+                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Phone</th>
+                            <th scope="col" class="px-4 py-3 whitespace-nowrap">Email</th>
                             <th scope="col" class="px-4 py-3 whitespace-nowrap">Active</th>
                             <th scope="col" class="px-4 py-3 whitespace-nowrap">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for product in products %}
-                        <tr id="product-row-{{ product.id }}" class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                        {% for supplier in suppliers %}
+                        <tr id="supplier-row-{{ supplier.id }}" class="hover:bg-gray-100 dark:hover:bg-gray-700">
                             <td class="w-4 px-4 py-3 whitespace-nowrap">
                                 <div class="flex items-center">
-                                    <input id="checkbox-{{ product.id }}" name="product_ids" value="{{ product.id }}" type="checkbox" class="w-4 h-4 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                    <label for="checkbox-{{ product.id }}" class="sr-only">Select product</label>
+                                    <input id="checkbox-{{ supplier.id }}" name="supplier_ids" value="{{ supplier.id }}" type="checkbox" class="w-4 h-4 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                    <label for="checkbox-{{ supplier.id }}" class="sr-only">Select supplier</label>
                                 </div>
                             </td>
-                            <th scope="row" class="flex items-center px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-gray-500">
-                                {% if product.photo %}
-                                    <img 
-                                        src="{{ product.photo.url }}" 
-                                        alt="{{ product.item_name }}" 
-                                        class="w-8 h-8 mr-3 object-cover rounded product-image cursor-pointer" 
-                                        data-full-url="{{ product.photo.url }}"
-                                        title="Click to view full image"
-                                    >
-                                {% else %}
-                                    <img 
-                                        src="{% static 'images/placeholder.png' %}" 
-                                        alt="{{ product.item_name }}" 
-                                        class="w-8 h-8 mr-3 object-cover rounded product-image cursor-pointer" 
-                                        data-full-url="{% static 'images/placeholder.png' %}"
-                                        title="Click to view full image"
-                                    >
-                                {% endif %}
-                                {{ product.item_name }}  
-                            </th>
-                            <td class="px-4 py-2 whitespace-nowrap">{{ product.quantity }}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">{{ product.supplier.supplier_name }}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">{{ product.currency_code }}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">${{ product.retail_price }}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">{{ product.uom }}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">{{ product.discountable_all|yesno:"Yes,No" }}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">{{ product.discountable_members|yesno:"Yes,No" }}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">{{ product.active|yesno:"Yes,No" }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ supplier.supplier_no }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ supplier.supplier_name }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ supplier.contact }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ supplier.country }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ supplier.phone }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ supplier.email }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ supplier.active|yesno:"Yes,No" }}</td>
                             <td class="px-4 py-2 whitespace-nowrap flex space-x-2">
                                 <!-- Edit Button -->
                                 <button
                                     type="button"
                                     class="text-blue-600 hover:text-blue-800 focus:outline-none"
-                                    onclick="editProduct('{{ product.id }}')"
-                                    title="Edit Product"
+                                    onclick="editSupplier('{{ supplier.id }}')"
+                                    title="Edit Supplier"
                                 >
-                                    <!-- Edit Icon -->
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 18a1 1 0 01-1-1v-4.586l10.293-10.293a1 1 0 011.414 0l2.586 2.586a1 1 0 010 1.414L9.414 17H5z" />
                                     </svg>
@@ -121,10 +97,9 @@
                                 <button
                                     type="button"
                                     class="text-red-600 hover:text-red-800 focus:outline-none"
-                                    onclick="deleteProduct('{{ product.id }}')"
-                                    title="Delete Product"
+                                    onclick="deleteSupplier('{{ supplier.id }}')"
+                                    title="Delete Supplier"
                                 >
-                                    <!-- Delete Icon -->
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M6 3V4H4V6H16V4H14V3H6ZM6 6V15C6 16.1046 6.89543 17 8 17H12C13.1046 17 14 16.1046 14 15V6H6Z" />
                                     </svg>
@@ -145,7 +120,7 @@
     <div class="bg-white dark:bg-[#131313] rounded-lg shadow-lg w-full max-w-2xl mx-4">
         <div class="flex justify-between items-center px-4 py-3 border-b dark:border-gray-700">
             <h3 id="modalTitle" class="text-lg font-semibold text-gray-700 dark:text-gray-200">
-                Add New Product
+                Add New Supplier
             </h3>
             <button id="closeModalButton" class="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,64 +128,50 @@
                 </svg>
             </button>
         </div>
-        <form id="productForm" method="POST" enctype="multipart/form-data" action="{% url 'add_product' %}">
+        <form id="supplierForm" method="POST" enctype="multipart/form-data" action="{% url 'add_supplier' %}">
             {% csrf_token %}
             <div class="px-4 py-5">
                 <div class="grid grid-cols-1 gap-4">
                     <div>
-                        {{ form.item_name.label_tag }}
-                        {{ form.item_name }}
-                        {% if form.item_name.errors %}
-                            <p class="text-red-500 text-xs mt-1">{{ form.item_name.errors }}</p>
+                        {{ form.supplier_no.label_tag }}
+                        {{ form.supplier_no }}
+                        {% if form.supplier_no.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.supplier_no.errors }}</p>
                         {% endif %}
                     </div>
                     <div>
-                        {{ form.supplier.label_tag }}
-                        {{ form.supplier }}
-                        {% if form.supplier.errors %}
-                            <p class="text-red-500 text-xs mt-1">{{ form.supplier.errors }}</p>
+                        {{ form.supplier_name.label_tag }}
+                        {{ form.supplier_name }}
+                        {% if form.supplier_name.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.supplier_name.errors }}</p>
                         {% endif %}
                     </div>
                     <div>
-                        {{ form.currency_code.label_tag }}
-                        {{ form.currency_code }}
-                        {% if form.currency_code.errors %}
-                            <p class="text-red-500 text-xs mt-1">{{ form.currency_code.errors }}</p>
+                        {{ form.contact.label_tag }}
+                        {{ form.contact }}
+                        {% if form.contact.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.contact.errors }}</p>
                         {% endif %}
                     </div>
                     <div>
-                        {{ form.retail_price.label_tag }}
-                        {{ form.retail_price }}
-                        {% if form.retail_price.errors %}
-                            <p class="text-red-500 text-xs mt-1">{{ form.retail_price.errors }}</p>
+                        {{ form.country.label_tag }}
+                        {{ form.country }}
+                        {% if form.country.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.country.errors }}</p>
                         {% endif %}
                     </div>
                     <div>
-                        {{ form.uom.label_tag }}
-                        {{ form.uom }}
-                        {% if form.uom.errors %}
-                            <p class="text-red-500 text-xs mt-1">{{ form.uom.errors }}</p>
+                        {{ form.phone.label_tag }}
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.phone.errors }}</p>
                         {% endif %}
                     </div>
                     <div>
-                        {{ form.quantity.label_tag }}
-                        {{ form.quantity }}
-                        {% if form.quantity.errors %}
-                            <p class="text-red-500 text-xs mt-1">{{ form.quantity.errors }}</p>
-                        {% endif %}
-                    </div>
-                    <div class="flex items-center">
-                        {{ form.discountable_all }}
-                        <label for="id_discountable_all" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Discountable (All)</label>
-                        {% if form.discountable_all.errors %}
-                            <p class="text-red-500 text-xs mt-1">{{ form.discountable_all.errors }}</p>
-                        {% endif %}
-                    </div>
-                    <div class="flex items-center">
-                        {{ form.discountable_members }}
-                        <label for="id_discountable_members" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Discountable (Members)</label>
-                        {% if form.discountable_members.errors %}
-                            <p class="text-red-500 text-xs mt-1">{{ form.discountable_members.errors }}</p>
+                        {{ form.email.label_tag }}
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.email.errors }}</p>
                         {% endif %}
                     </div>
                     <div class="flex items-center">
@@ -220,13 +181,6 @@
                             <p class="text-red-500 text-xs mt-1">{{ form.active.errors }}</p>
                         {% endif %}
                     </div>
-                    <div>
-                        {{ form.photo.label_tag }}
-                        {{ form.photo }}
-                        {% if form.photo.errors %}
-                            <p class="text-red-500 text-xs mt-1">{{ form.photo.errors }}</p>
-                        {% endif %}
-                    </div>
                 </div>
             </div>
             <div class="px-4 py-3 border-t dark:border-gray-700 flex justify-end">
@@ -234,7 +188,7 @@
                     Cancel
                 </button>
                 <button type="submit" id="submitButton" class="px-4 py-2 bg-[#C4C508] text-white rounded-lg hover:bg-[#A4A308] dark:bg-[#C4C508] dark:hover:bg-[#A4A308]">
-                    Save Product
+                    Save Supplier
                 </button>
             </div>
         </form>
@@ -244,7 +198,7 @@
 <!-- Include SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- JavaScript for Modal, Delete, and Edit Functionality -->
+<!-- JavaScript for Modal and CRUD Operations -->
 <script>
     // Function to get CSRF token from cookies
     function getCookie(name) {
@@ -267,14 +221,14 @@
     const openModalButton = document.getElementById('openModalButton');
     const modal = document.getElementById('modal');
     const closeModalButtons = document.querySelectorAll('#closeModalButton, #closeModalButtonFooter');
-    const productForm = document.getElementById('productForm');
+    const supplierForm = document.getElementById('supplierForm');
     const modalTitle = document.getElementById('modalTitle');
     const submitButton = document.getElementById('submitButton');
 
     let isEditMode = false;
-    let editProductId = null;
+    let editSupplierId = null;
 
-    // Open modal for adding new product
+    // Open modal for adding new supplier
     openModalButton.addEventListener('click', () => {
         resetForm();
         modal.classList.remove('hidden');
@@ -302,16 +256,16 @@
     // Reset form to default (add mode)
     function resetForm() {
         isEditMode = false;
-        editProductId = null;
-        productForm.reset();
-        productForm.action = "{% url 'add_product' %}";
-        modalTitle.textContent = "Add New Product";
-        submitButton.textContent = "Save Product";
+        editSupplierId = null;
+        supplierForm.reset();
+        supplierForm.action = "{% url 'add_supplier' %}";
+        modalTitle.textContent = "Add New Supplier";
+        submitButton.textContent = "Save Supplier";
     }
 
     // Handle 'Select All' checkbox
     document.getElementById('checkbox-all').addEventListener('change', function() {
-        let checkboxes = document.querySelectorAll('input[name="product_ids"]');
+        let checkboxes = document.querySelectorAll('input[name="supplier_ids"]');
         checkboxes.forEach((checkbox) => {
             checkbox.checked = this.checked;
         });
@@ -319,25 +273,25 @@
 
     // Bulk delete functionality
     document.getElementById('bulkDeleteButton').addEventListener('click', function() {
-        // Collect selected product IDs
-        let checkboxes = document.querySelectorAll('input[name="product_ids"]:checked');
+        // Collect selected supplier IDs
+        let checkboxes = document.querySelectorAll('input[name="supplier_ids"]:checked');
         if (checkboxes.length === 0) {
             Swal.fire(
-                'No products selected',
-                'Please select at least one product to delete.',
+                'No suppliers selected',
+                'Please select at least one supplier to delete.',
                 'warning'
             );
             return;
         }
 
-        let productIds = [];
+        let supplierIds = [];
         checkboxes.forEach((checkbox) => {
-            productIds.push(checkbox.value);
+            supplierIds.push(checkbox.value);
         });
 
         Swal.fire({
             title: 'Are you sure?',
-            text: 'You will not be able to recover these products!',
+            text: 'You will not be able to recover these suppliers!',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -347,11 +301,11 @@
             if (result.isConfirmed) {
                 // Prepare form data
                 let formData = new FormData();
-                productIds.forEach((id) => {
-                    formData.append('product_ids', id);
+                supplierIds.forEach((id) => {
+                    formData.append('supplier_ids', id);
                 });
-                // Send AJAX request to bulk delete products
-                fetch("{% url 'bulk_delete_products' %}", {
+                // Send AJAX request to bulk delete suppliers
+                fetch("{% url 'bulk_delete_suppliers' %}", {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': csrfToken,
@@ -365,12 +319,12 @@
                     if (data.status === 'success') {
                         Swal.fire(
                             'Deleted!',
-                            'Your selected products have been deleted.',
+                            'Your selected suppliers have been deleted.',
                             'success'
                         );
-                        // Remove the deleted product rows from the table
-                        productIds.forEach((productId) => {
-                            let row = document.getElementById('product-row-' + productId);
+                        // Remove the deleted supplier rows from the table
+                        supplierIds.forEach((supplierId) => {
+                            let row = document.getElementById('supplier-row-' + supplierId);
                             if (row) {
                                 row.remove();
                             }
@@ -395,10 +349,10 @@
     });
 
     // Individual delete functionality
-    function deleteProduct(productId) {
+    function deleteSupplier(supplierId) {
         Swal.fire({
             title: 'Are you sure?',
-            text: 'You will not be able to recover this product!',
+            text: 'You will not be able to recover this supplier!',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -408,8 +362,8 @@
             if (result.isConfirmed) {
                 // Prepare form data
                 let formData = new FormData();
-                // Send AJAX request to delete product
-                fetch("{% url 'delete_product' product_id=0 %}".replace('0', productId), {
+                // Send AJAX request to delete supplier
+                fetch("{% url 'delete_supplier' supplier_id=0 %}".replace('0', supplierId), {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': csrfToken,
@@ -423,11 +377,11 @@
                     if (data.status === 'success') {
                         Swal.fire(
                             'Deleted!',
-                            'Your product has been deleted.',
+                            'The supplier has been deleted.',
                             'success'
                         );
-                        // Remove the deleted product row from the table
-                        let row = document.getElementById('product-row-' + productId);
+                        // Remove the deleted supplier row from the table
+                        let row = document.getElementById('supplier-row-' + supplierId);
                         if (row) {
                             row.remove();
                         }
@@ -442,7 +396,7 @@
                 .catch((error) => {
                     Swal.fire(
                         'Error!',
-                        'An error occurred while deleting the product.',
+                        'An error occurred while deleting the supplier.',
                         'error'
                     );
                 });
@@ -450,33 +404,10 @@
         });
     }
 
-    // Handle Image Click to Show in Modal
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.product-image').forEach(function(image) {
-            image.addEventListener('click', function() {
-                const fullImageUrl = this.getAttribute('data-full-url');
-                const altText = this.getAttribute('alt');
-                Swal.fire({
-                    title: altText,
-                    imageUrl: fullImageUrl,
-                    imageAlt: altText,
-                    showCloseButton: true,
-                    showConfirmButton: false,
-                    width: 'auto',
-                    heightAuto: true,
-                    customClass: {
-                        popup: 'p-0 rounded-lg',
-                        image: 'object-contain w-auto h-96' // Adjust size as needed
-                    }
-                });
-            });
-        });
-    });
-
-    // Edit Product Functionality
-    function editProduct(productId) {
-        // Fetch product data via AJAX
-        fetch("{% url 'edit_product' product_id=0 %}".replace('0', productId), {
+    // Edit Supplier Functionality
+    function editSupplier(supplierId) {
+        // Fetch supplier data via AJAX
+        fetch("{% url 'edit_supplier' supplier_id=0 %}".replace('0', supplierId), {
             method: 'GET',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -486,32 +417,30 @@
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                const product = data.product;
+                const supplier = data.supplier;
                 // Populate form fields
-                productForm.querySelector('input[name="item_name"]').value = product.item_name || '';
-                productForm.querySelector('select[name="supplier"]').value = product.supplier_id || '';
-                productForm.querySelector('input[name="currency_code"]').value = product.currency_code || '';
-                productForm.querySelector('input[name="retail_price"]').value = product.retail_price || '';
-                productForm.querySelector('input[name="uom"]').value = product.uom || '';
-                productForm.querySelector('input[name="quantity"]').value = product.quantity || '';
-                productForm.querySelector('input[name="discountable_all"]').checked = !!product.discountable_all;
-                productForm.querySelector('input[name="discountable_members"]').checked = !!product.discountable_members;
-                productForm.querySelector('input[name="active"]').checked = !!product.active;
-                // Change form action to update_product
-                productForm.action = "{% url 'update_product' product_id=0 %}".replace('0', product.id);
+                supplierForm.querySelector('input[name="supplier_no"]').value = supplier.supplier_no || '';
+                supplierForm.querySelector('input[name="supplier_name"]').value = supplier.supplier_name || '';
+                supplierForm.querySelector('input[name="contact"]').value = supplier.contact || '';
+                supplierForm.querySelector('input[name="country"]').value = supplier.country || '';
+                supplierForm.querySelector('input[name="phone"]').value = supplier.phone || '';
+                supplierForm.querySelector('input[name="email"]').value = supplier.email || '';
+                supplierForm.querySelector('input[name="active"]').checked = !!supplier.active;
+                // Change form action to update_supplier
+                supplierForm.action = "{% url 'edit_supplier' supplier_id=0 %}".replace('0', supplier.id);
                 // Update modal title and button text
-                modalTitle.textContent = "Edit Product";
-                submitButton.textContent = "Update Product";
+                modalTitle.textContent = "Edit Supplier";
+                submitButton.textContent = "Update Supplier";
                 // Set edit mode flags
                 isEditMode = true;
-                editProductId = product.id;
+                editSupplierId = supplier.id;
                 // Open modal
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
             } else {
                 Swal.fire(
                     'Error!',
-                    data.message || 'Failed to fetch product data.',
+                    data.message || 'Failed to fetch supplier data.',
                     'error'
                 );
             }
@@ -520,7 +449,7 @@
             console.log('Error:', error);
             Swal.fire(
                 'Error!',
-                'An error occurred while fetching product data.',
+                'An error occurred while fetching supplier data.',
                 'error'
             );
         });
@@ -528,13 +457,13 @@
 
 
     // Handle form submission for editing
-    productForm.addEventListener('submit', function(event) {
-        if (isEditMode && editProductId) {
+    supplierForm.addEventListener('submit', function(event) {
+        if (isEditMode && editSupplierId) {
             event.preventDefault(); // Prevent default form submission
 
             const formData = new FormData(this);
 
-            fetch(productForm.action, {
+            fetch(supplierForm.action, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': csrfToken,
@@ -551,71 +480,24 @@
                         data.message,
                         'success'
                     );
-                    // Optionally, update the product row in the table with new data
-                    const updatedProduct = data.product;
-                    const row = document.getElementById('product-row-' + updatedProduct.id);
+                    // Optionally, update the supplier row in the table with new data
+                    const updatedSupplier = data.supplier;
+                    const row = document.getElementById('supplier-row-' + updatedSupplier.id);
                     if (row) {
-                        // Update Product Cell with Image and Name
-                        row.querySelector('th[scope="row"]').innerHTML = `
-                            ${updatedProduct.photo_url ? `
-                                <img 
-                                    src="${updatedProduct.photo_url}" 
-                                    alt="${updatedProduct.item_name}" 
-                                    class="w-8 h-8 mr-3 object-cover rounded product-image cursor-pointer" 
-                                    data-full-url="${updatedProduct.photo_url}"
-                                    title="Click to view full image"
-                                >
-                            ` : `
-                                <img 
-                                    src="{% static 'images/placeholder.png' %}" 
-                                    alt="${updatedProduct.item_name}" 
-                                    class="w-8 h-8 mr-3 object-cover rounded product-image cursor-pointer" 
-                                    data-full-url="{% static 'images/placeholder.png' %}"
-                                    title="Click to view full image"
-                                >
-                            `}
-                            ${updatedProduct.item_name}
-                        `;
-                        // Update Quantity
-                        row.querySelector('td:nth-child(3)').textContent = updatedProduct.quantity;
-                        // Update Supplier
-                        row.querySelector('td:nth-child(4)').textContent = updatedProduct.supplier_name;
-                        // Update Currency
-                        row.querySelector('td:nth-child(5)').textContent = updatedProduct.currency_code;
-                        // Update Price
-                        row.querySelector('td:nth-child(6)').textContent = `$${updatedProduct.retail_price}`;
-                        // Update UOM
-                        row.querySelector('td:nth-child(7)').textContent = updatedProduct.uom;
-                        // Update Discountable (All)
-                        row.querySelector('td:nth-child(8)').textContent = updatedProduct.discountable_all;
-                        // Update Discountable (Members)
-                        row.querySelector('td:nth-child(9)').textContent = updatedProduct.discountable_members;
-                        // Update Active
-                        row.querySelector('td:nth-child(10)').textContent = updatedProduct.active;
+                        // Update Supplier Data Cells
+                        row.querySelector('td:nth-child(2)').textContent = updatedSupplier.supplier_no;
+                        row.querySelector('td:nth-child(3)').textContent = updatedSupplier.supplier_name;
+                        row.querySelector('td:nth-child(4)').textContent = updatedSupplier.contact;
+                        row.querySelector('td:nth-child(5)').textContent = updatedSupplier.country;
+                        row.querySelector('td:nth-child(6)').textContent = updatedSupplier.phone;
+                        row.querySelector('td:nth-child(7)').textContent = updatedSupplier.email;
+                        row.querySelector('td:nth-child(8)').textContent = updatedSupplier.active;
 
-                        // Re-attach event listener for the new image
-                        row.querySelector('.product-image').addEventListener('click', function() {
-                            const fullImageUrl = this.getAttribute('data-full-url');
-                            const altText = this.getAttribute('alt');
-                            Swal.fire({
-                                title: altText,
-                                imageUrl: fullImageUrl,
-                                imageAlt: altText,
-                                showCloseButton: true,
-                                showConfirmButton: false,
-                                width: 'auto',
-                                heightAuto: true,
-                                customClass: {
-                                    popup: 'p-0 rounded-lg',
-                                    image: 'object-contain w-auto h-96' // Adjust size as needed
-                                }
-                            });
-                        });
+                        // Close modal and reset form
+                        modal.classList.add('hidden');
+                        modal.classList.remove('flex');
+                        resetForm();
                     }
-                    // Close modal and reset form
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
-                    resetForm();
                 } else {
                     // Handle form errors
                     if (data.errors) {
@@ -634,7 +516,7 @@
                     } else {
                         Swal.fire(
                             'Error!',
-                            data.message || 'An error occurred while updating the product.',
+                            data.message || 'An error occurred while updating the supplier.',
                             'error'
                         );
                     }
@@ -643,7 +525,7 @@
             .catch((error) => {
                 Swal.fire(
                     'Error!',
-                    'An error occurred while updating the product.',
+                    'An error occurred while updating the supplier.',
                     'error'
                 );
             });

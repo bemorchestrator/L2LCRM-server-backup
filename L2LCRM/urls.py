@@ -7,6 +7,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('IAM.urls')),
     path('inventory/', include('inventory.urls')),
+    path('suppliers/', include('suppliers.urls')),
 ]
 
 # Add this line to serve media files during development
