@@ -1,10 +1,13 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse
 
 
 def login_view(request):
+    if request.user.is_authenticated:
+        # If the user is already logged in, redirect to the dashboard
+        return redirect('dashboard')
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']

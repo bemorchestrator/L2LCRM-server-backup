@@ -5,8 +5,10 @@ from .forms import ProductForm
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
+from django.contrib.auth.decorators import login_required
 
 @csrf_protect
+@login_required
 def product_list(request):
     """
     View to display the list of products.

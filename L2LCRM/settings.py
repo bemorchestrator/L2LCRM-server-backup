@@ -28,6 +28,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['app.leaftolife.com.sg', 'localhost']
 
+LOGIN_URL = 'login'
+
 
 # Application definition
 

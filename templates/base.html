@@ -35,11 +35,12 @@
 
             <!-- Single Logout Link at the Bottom -->
             <div class="mt-auto px-4 py-2">
-                <form id="logout-form" action="" method="post" class="hidden">
+                <!-- Move the form off-screen instead of hiding it -->
+                <form id="logout-form" action="{% url 'logout' %}" method="post" style="position: absolute; left: -9999px;">
                     {% csrf_token %}
                 </form>
                 <a href="#" class="flex items-center pl-6 py-3 hover:bg-blue-700 rounded w-full text-sm logout-link" 
-                   onclick="document.getElementById('logout-form').submit(); return false;">
+                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                     <i class="bi bi-box-arrow-left text-white mr-3 w-6 flex-shrink-0"></i>
                     <span class="menu-text text-white">Logout</span>
                 </a>

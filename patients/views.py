@@ -5,10 +5,12 @@ from django.shortcuts import get_object_or_404, render, redirect
 from .models import Patients
 from .forms import PatientForm
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
 
 @csrf_protect
+@login_required
 def patient_list(request):
     """
     View to display the list of patients.
