@@ -23,7 +23,7 @@ def add_supplier(request):
     If the request is AJAX, it returns a JSON response; otherwise, it redirects.
     """
     if request.method == 'POST':
-        form = SupplierForm(request.POST, request.FILES)
+        form = SupplierForm(request.POST)
         if form.is_valid():
             supplier = form.save()
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -84,43 +84,11 @@ def bulk_delete_suppliers(request):
 
 def edit_supplier(request, supplier_id):
     """
-    View to fetch supplier data for editing via AJAX or handle form submission.
+    View to fetch supplier data for editing via AJAX.
     """
-    supplier = get_object_or_404(Supplier, id=supplier_id)
-
-    if request.method == 'POST':
-        form = SupplierForm(request.POST, request.FILES, instance=supplier)
-        if form.is_valid():
-            form.save()
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                # Prepare updated supplier data to send back
-                updated_supplier = Supplier.objects.get(id=supplier_id)
-                supplier_data = {
-                    'id': updated_supplier.id,
-                    'supplier_no': updated_supplier.supplier_no,
-                    'supplier_name': updated_supplier.supplier_name,
-                    'contact': updated_supplier.contact,
-                    'country': updated_supplier.country,
-                    'phone': updated_supplier.phone,
-                    'email': updated_supplier.email,
-                    'active': 'Yes' if updated_supplier.active else 'No',
-                }
-                return JsonResponse({'status': 'success', 'message': 'Supplier updated successfully!', 'supplier': supplier_data})
-            else:
-                messages.success(request, 'Supplier has been successfully updated!')
-                return redirect('supplier_list')
-        else:
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                errors = form.errors.as_json()
-                return JsonResponse({'status': 'error', 'errors': errors})
-            else:
-                messages.error(request, 'There was an error updating the supplier. Please try again.')
-    else:
-        form = SupplierForm(instance=supplier)
-
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        # Prepare supplier data to send back
-        supplier_data = {
+        supplier = get_object_or_404(Supplier, id=supplier_id)
+        data = {
             'id': supplier.id,
             'supplier_no': supplier.supplier_no,
             'supplier_name': supplier.supplier_name,
@@ -130,6 +98,61 @@ def edit_supplier(request, supplier_id):
             'email': supplier.email,
             'active': supplier.active,
         }
-        return JsonResponse({'status': 'success', 'supplier': supplier_data})
+        return JsonResponse({'status': 'success', 'supplier': data})
     else:
-        return render(request, 'suppliers/supplier_form.html', {'form': form, 'supplier': supplier})
+        return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
+@require_POST
+def update_supplier(request, supplier_id):
+    """
+    View to update a supplier via AJAX.
+    """
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        supplier = get_object_or_404(Supplier, id=supplier_id)
+        form = SupplierForm(request.POST, instance=supplier)
+        if form.is_valid():
+            form.save()
+            updated_supplier = Supplier.objects.get(id=supplier_id)
+            supplier_data = {
+                'id': updated_supplier.id,
+                'supplier_no': updated_supplier.supplier_no,
+                'supplier_name': updated_supplier.supplier_name,
+                'contact': updated_supplier.contact,
+                'country': updated_supplier.country,
+                'phone': updated_supplier.phone,
+                'email': updated_supplier.email,
+                'active': 'Yes' if updated_supplier.active else 'No',
+            }
+            return JsonResponse({'status': 'success', 'message': 'Supplier updated successfully!', 'supplier': supplier_data})
+        else:
+            errors = form.errors.as_json()
+            return JsonResponse({'status': 'error', 'message': 'There were errors in the form.', 'errors': errors})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
+def search_suppliers(request):
+    """
+    View to handle real-time search with autocomplete functionality.
+    """
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        query = request.GET.get('q', '').strip()
+        if query:
+            suppliers = Supplier.objects.filter(supplier_name__icontains=query)
+        else:
+            suppliers = Supplier.objects.all()
+        
+        # Serialize suppliers
+        suppliers_data = []
+        for supplier in suppliers:
+            suppliers_data.append({
+                'id': supplier.id,
+                'supplier_no': supplier.supplier_no,
+                'supplier_name': supplier.supplier_name,
+                'contact': supplier.contact,
+                'country': supplier.country,
+                'phone': supplier.phone,
+                'email': supplier.email,
+                'active': 'Yes' if supplier.active else 'No',
+            })
+        return JsonResponse({'status': 'success', 'suppliers': suppliers_data})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Invalid request'})

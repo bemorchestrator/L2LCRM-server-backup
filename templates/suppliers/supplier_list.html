@@ -4,7 +4,7 @@
 {% load static %}
 {% block content %}
 <section>
-    <div class="container mx-auto px-4 py-6">
+    <div class="container mx-auto px-4">
         <div class="relative overflow-hidden bg-white shadow-md sm:rounded-lg dark:bg-[#1a1a1a]">
             <!-- Header with stats and action buttons -->
             <div class="flex flex-col px-4 py-3 space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 lg:space-x-4">
@@ -13,6 +13,15 @@
                         <span class="text-gray-500">All Suppliers:</span>
                         <span class="dark:text-white">{{ suppliers|length }}</span>
                     </h5>
+                    <!-- Search Input -->
+                    <div class="relative w-full max-w-sm">
+                        <input type="text" id="searchInput" placeholder="Search suppliers..." class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M12.9 14.32a8 8 0 111.414-1.414l4.387 4.387a1 1 0 01-1.414 1.414l-4.387-4.387zM14 8a6 6 0 11-12 0 6 6 0 0112 0z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
                 <div class="flex flex-row flex-shrink-0 space-x-3 md:flex-row md:items-center lg:justify-end">
                     <!-- Bulk Delete Button -->
@@ -64,49 +73,8 @@
                             <th scope="col" class="px-4 py-3 whitespace-nowrap">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {% for supplier in suppliers %}
-                        <tr id="supplier-row-{{ supplier.id }}" class="hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <td class="w-4 px-4 py-3 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <input id="checkbox-{{ supplier.id }}" name="supplier_ids" value="{{ supplier.id }}" type="checkbox" class="w-4 h-4 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                    <label for="checkbox-{{ supplier.id }}" class="sr-only">Select supplier</label>
-                                </div>
-                            </td>
-                            <td class="px-4 py-2 whitespace-nowrap">{{ supplier.supplier_no }}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">{{ supplier.supplier_name }}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">{{ supplier.contact }}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">{{ supplier.country }}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">{{ supplier.phone }}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">{{ supplier.email }}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">{{ supplier.active|yesno:"Yes,No" }}</td>
-                            <td class="px-4 py-2 whitespace-nowrap flex space-x-2">
-                                <!-- Edit Button -->
-                                <button
-                                    type="button"
-                                    class="text-blue-600 hover:text-blue-800 focus:outline-none"
-                                    onclick="editSupplier('{{ supplier.id }}')"
-                                    title="Edit Supplier"
-                                >
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 18a1 1 0 01-1-1v-4.586l10.293-10.293a1 1 0 011.414 0l2.586 2.586a1 1 0 010 1.414L9.414 17H5z" />
-                                    </svg>
-                                </button>
-
-                                <!-- Individual Delete Button -->
-                                <button
-                                    type="button"
-                                    class="text-red-600 hover:text-red-800 focus:outline-none"
-                                    onclick="deleteSupplier('{{ supplier.id }}')"
-                                    title="Delete Supplier"
-                                >
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M6 3V4H4V6H16V4H14V3H6ZM6 6V15C6 16.1046 6.89543 17 8 17H12C13.1046 17 14 16.1046 14 15V6H6Z" />
-                                    </svg>
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
+                    <tbody id="supplierTableBody">
+                        {% include 'suppliers/_supplier_rows.html' %}
                     </tbody>
                 </table>
             </div>
@@ -117,7 +85,7 @@
 <!-- Modal Background -->
 <div id="modal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
     <!-- Modal Content -->
-    <div class="bg-white dark:bg-[#131313] rounded-lg shadow-lg w-full max-w-2xl mx-4">
+    <div class="bg-white dark:bg-[#131313] rounded-lg shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center px-4 py-3 border-b dark:border-gray-700">
             <h3 id="modalTitle" class="text-lg font-semibold text-gray-700 dark:text-gray-200">
                 Add New Supplier
@@ -128,7 +96,7 @@
                 </svg>
             </button>
         </div>
-        <form id="supplierForm" method="POST" enctype="multipart/form-data" action="{% url 'add_supplier' %}">
+        <form id="supplierForm" method="POST" action="{% url 'add_supplier' %}">
             {% csrf_token %}
             <div class="px-4 py-5">
                 <div class="grid grid-cols-1 gap-4">
@@ -227,6 +195,17 @@
 
     let isEditMode = false;
     let editSupplierId = null;
+
+    // Debounce function to limit the rate of function calls
+    function debounce(func, delay) {
+        let debounceTimer;
+        return function() {
+            const context = this;
+            const args = arguments;
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => func.apply(context, args), delay);
+        };
+    }
 
     // Open modal for adding new supplier
     openModalButton.addEventListener('click', () => {
@@ -427,7 +406,7 @@
                 supplierForm.querySelector('input[name="email"]').value = supplier.email || '';
                 supplierForm.querySelector('input[name="active"]').checked = !!supplier.active;
                 // Change form action to update_supplier
-                supplierForm.action = "{% url 'edit_supplier' supplier_id=0 %}".replace('0', supplier.id);
+                supplierForm.action = "{% url 'update_supplier' supplier_id=0 %}".replace('0', supplier.id);
                 // Update modal title and button text
                 modalTitle.textContent = "Edit Supplier";
                 submitButton.textContent = "Update Supplier";
@@ -455,36 +434,34 @@
         });
     }
 
-
-    // Handle form submission for editing
+    // Handle form submission for adding and editing
     supplierForm.addEventListener('submit', function(event) {
-        if (isEditMode && editSupplierId) {
-            event.preventDefault(); // Prevent default form submission
+        event.preventDefault(); // Prevent default form submission
 
-            const formData = new FormData(this);
+        const formData = new FormData(this);
 
-            fetch(supplierForm.action, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                credentials: 'same-origin',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
+        fetch(supplierForm.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                if (isEditMode) {
                     Swal.fire(
                         'Updated!',
                         data.message,
                         'success'
                     );
-                    // Optionally, update the supplier row in the table with new data
+                    // Update the supplier row in the table with new data
                     const updatedSupplier = data.supplier;
                     const row = document.getElementById('supplier-row-' + updatedSupplier.id);
                     if (row) {
-                        // Update Supplier Data Cells
                         row.querySelector('td:nth-child(2)').textContent = updatedSupplier.supplier_no;
                         row.querySelector('td:nth-child(3)').textContent = updatedSupplier.supplier_name;
                         row.querySelector('td:nth-child(4)').textContent = updatedSupplier.contact;
@@ -492,45 +469,181 @@
                         row.querySelector('td:nth-child(6)').textContent = updatedSupplier.phone;
                         row.querySelector('td:nth-child(7)').textContent = updatedSupplier.email;
                         row.querySelector('td:nth-child(8)').textContent = updatedSupplier.active;
-
-                        // Close modal and reset form
-                        modal.classList.add('hidden');
-                        modal.classList.remove('flex');
-                        resetForm();
                     }
                 } else {
-                    // Handle form errors
-                    if (data.errors) {
-                        let errorMessages = '';
-                        const errors = JSON.parse(data.errors);
-                        for (let field in errors) {
-                            errors[field].forEach(error => {
-                                errorMessages += `${error.message}<br>`;
-                            });
-                        }
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Form Errors',
-                            html: errorMessages
-                        });
-                    } else {
-                        Swal.fire(
-                            'Error!',
-                            data.message || 'An error occurred while updating the supplier.',
-                            'error'
-                        );
-                    }
+                    Swal.fire(
+                        'Added!',
+                        data.message,
+                        'success'
+                    );
+                    // Append the new supplier row to the table
+                    const newSupplier = data.supplier;
+                    const tbody = document.getElementById('supplierTableBody');
+                    const row = document.createElement('tr');
+                    row.id = 'supplier-row-' + newSupplier.id;
+                    row.classList.add('hover:bg-gray-100', 'dark:hover:bg-gray-700');
+
+                    row.innerHTML = `
+                        <td class="w-4 px-4 py-3 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <input id="checkbox-${newSupplier.id}" name="supplier_ids" value="${newSupplier.id}" type="checkbox" class="w-4 h-4 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <label for="checkbox-${newSupplier.id}" class="sr-only">Select supplier</label>
+                            </div>
+                        </td>
+                        <td class="px-4 py-2 whitespace-nowrap">${newSupplier.supplier_no}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${newSupplier.supplier_name}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${newSupplier.contact}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${newSupplier.country}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${newSupplier.phone}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${newSupplier.email}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${newSupplier.active}</td>
+                        <td class="px-4 py-2 whitespace-nowrap flex space-x-2">
+                            <!-- Edit Button -->
+                            <button
+                                type="button"
+                                class="text-blue-600 hover:text-blue-800 focus:outline-none"
+                                onclick="editSupplier('${newSupplier.id}')"
+                                title="Edit Supplier"
+                            >
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 18a1 1 0 01-1-1v-4.586l10.293-10.293a1 1 0 011.414 0l2.586 2.586a1 1 0 010 1.414L9.414 17H5z" />
+                                </svg>
+                            </button>
+
+                            <!-- Individual Delete Button -->
+                            <button
+                                type="button"
+                                class="text-red-600 hover:text-red-800 focus:outline-none"
+                                onclick="deleteSupplier('${newSupplier.id}')"
+                                title="Delete Supplier"
+                            >
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M6 3V4H4V6H16V4H14V3H6ZM6 6V15C6 16.1046 6.89543 17 8 17H12C13.1046 17 14 16.1046 14 15V6H6Z" />
+                                </svg>
+                            </button>
+                        </td>
+                    `;
+                    tbody.prepend(row);
                 }
-            })
-            .catch((error) => {
+                // Close modal and reset form
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                resetForm();
+            } else {
+                // Handle form errors
+                if (data.errors) {
+                    let errorMessages = '';
+                    const errors = JSON.parse(data.errors);
+                    for (let field in errors) {
+                        errors[field].forEach(error => {
+                            errorMessages += `${error.message}<br>`;
+                        });
+                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Form Errors',
+                        html: errorMessages
+                    });
+                } else {
+                    Swal.fire(
+                        'Error!',
+                        data.message || 'An error occurred.',
+                        'error'
+                    );
+                }
+            }
+        })
+        .catch((error) => {
+            Swal.fire(
+                'Error!',
+                'An error occurred.',
+                'error'
+            );
+        });
+    });
+
+    // Search Functionality with Autocomplete
+    const searchInput = document.getElementById('searchInput');
+    const supplierTableBody = document.getElementById('supplierTableBody');
+
+    searchInput.addEventListener('input', debounce(function() {
+        const query = this.value.trim();
+        fetch("{% url 'search_suppliers' %}?q=" + encodeURIComponent(query), {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Clear existing table body
+                supplierTableBody.innerHTML = '';
+                // Populate table with new data
+                data.suppliers.forEach(supplier => {
+                    const row = document.createElement('tr');
+                    row.id = `supplier-row-${supplier.id}`;
+                    row.classList.add('hover:bg-gray-100', 'dark:hover:bg-gray-700');
+
+                    row.innerHTML = `
+                        <td class="w-4 px-4 py-3 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <input id="checkbox-${supplier.id}" name="supplier_ids" value="${supplier.id}" type="checkbox" class="w-4 h-4 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <label for="checkbox-${supplier.id}" class="sr-only">Select supplier</label>
+                            </div>
+                        </td>
+                        <td class="px-4 py-2 whitespace-nowrap">${supplier.supplier_no}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${supplier.supplier_name}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${supplier.contact}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${supplier.country}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${supplier.phone}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${supplier.email}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${supplier.active}</td>
+                        <td class="px-4 py-2 whitespace-nowrap flex space-x-2">
+                            <!-- Edit Button -->
+                            <button
+                                type="button"
+                                class="text-blue-600 hover:text-blue-800 focus:outline-none"
+                                onclick="editSupplier('${supplier.id}')"
+                                title="Edit Supplier"
+                            >
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 18a1 1 0 01-1-1v-4.586l10.293-10.293a1 1 0 011.414 0l2.586 2.586a1 1 0 010 1.414L9.414 17H5z" />
+                                </svg>
+                            </button>
+
+                            <!-- Individual Delete Button -->
+                            <button
+                                type="button"
+                                class="text-red-600 hover:text-red-800 focus:outline-none"
+                                onclick="deleteSupplier('${supplier.id}')"
+                                title="Delete Supplier"
+                            >
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M6 3V4H4V6H16V4H14V3H6ZM6 6V15C6 16.1046 6.89543 17 8 17H12C13.1046 17 14 16.1046 14 15V6H6Z" />
+                                </svg>
+                            </button>
+                        </td>
+                    `;
+                    supplierTableBody.appendChild(row);
+                });
+            } else {
                 Swal.fire(
                     'Error!',
-                    'An error occurred while updating the supplier.',
+                    data.message || 'An error occurred while searching.',
                     'error'
                 );
-            });
-        }
-    });
+            }
+        })
+        .catch((error) => {
+            Swal.fire(
+                'Error!',
+                'An error occurred while searching.',
+                'error'
+            );
+        });
+    }, 300)); // Debounce delay of 300ms
 
     // Display SweetAlert2 notifications based on Django messages
     {% if messages %}

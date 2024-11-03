@@ -1,5 +1,3 @@
-# inventory/views.py
-
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from .models import Product
@@ -144,3 +142,35 @@ def update_product(request, product_id):
             errors = form.errors.as_json()
             return JsonResponse({'status': 'error', 'message': 'There were errors in the form.', 'errors': errors})
     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
+
+def search_products(request):
+    """
+    View to handle real-time search with autocomplete functionality.
+    """
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        query = request.GET.get('q', '').strip()
+        if query:
+            products = Product.objects.filter(item_name__icontains=query).select_related('supplier')
+        else:
+            products = Product.objects.all().select_related('supplier')
+        
+        # Serialize products
+        products_data = []
+        for product in products:
+            products_data.append({
+                'id': product.id,
+                'item_name': product.item_name,
+                'quantity': product.quantity,
+                'supplier_name': product.supplier.supplier_name,
+                'currency_code': product.currency_code,
+                'retail_price': str(product.retail_price),
+                'uom': product.uom,
+                'discountable_all': 'Yes' if product.discountable_all else 'No',
+                'discountable_members': 'Yes' if product.discountable_members else 'No',
+                'active': 'Yes' if product.active else 'No',
+                'photo_url': product.photo.url if product.photo else '',
+            })
+        return JsonResponse({'status': 'success', 'products': products_data})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Invalid request'})

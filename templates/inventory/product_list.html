@@ -4,15 +4,24 @@
 {% load static %}
 {% block content %}
 <section>
-    <div class="container mx-auto px-4 py-6">
+    <div class="container mx-auto px-4">
         <div class="relative overflow-hidden bg-white shadow-md sm:rounded-lg dark:bg-[#1a1a1a]">
-            <!-- Header with stats and action buttons -->
+            <!-- Header with stats, search, and action buttons -->
             <div class="flex flex-col px-4 py-3 space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0 lg:space-x-4">
                 <div class="flex items-center flex-1 space-x-4">
                     <h5 class="text-lg font-semibold">
                         <span class="text-gray-500">All Products:</span>
                         <span class="dark:text-white">{{ products|length }}</span>
                     </h5>
+                    <!-- Search Input -->
+                    <div class="relative w-full max-w-sm">
+                        <input type="text" id="searchInput" placeholder="Search products..." class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M12.9 14.32a8 8 0 111.414-1.414l4.387 4.387a1 1 0 01-1.414 1.414l-4.387-4.387zM14 8a6 6 0 11-12 0 6 6 0 0112 0z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
                 <div class="flex flex-row flex-shrink-0 space-x-3 md:flex-row md:items-center lg:justify-end">
                     <!-- Bulk Delete Button -->
@@ -66,7 +75,7 @@
                             <th scope="col" class="px-4 py-3 whitespace-nowrap">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="productTableBody">
                         {% for product in products %}
                         <tr id="product-row-{{ product.id }}" class="hover:bg-gray-100 dark:hover:bg-gray-700">
                             <td class="w-4 px-4 py-3 whitespace-nowrap">
@@ -142,7 +151,7 @@
 <!-- Modal Background -->
 <div id="modal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
     <!-- Modal Content -->
-    <div class="bg-white dark:bg-[#131313] rounded-lg shadow-lg w-full max-w-2xl mx-4">
+    <div class="bg-white dark:bg-[#131313] rounded-lg shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center px-4 py-3 border-b dark:border-gray-700">
             <h3 id="modalTitle" class="text-lg font-semibold text-gray-700 dark:text-gray-200">
                 Add New Product
@@ -244,7 +253,7 @@
 <!-- Include SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- JavaScript for Modal, Delete, and Edit Functionality -->
+<!-- JavaScript for Modal, Delete, Edit, and Search Functionality -->
 <script>
     // Function to get CSRF token from cookies
     function getCookie(name) {
@@ -273,6 +282,17 @@
 
     let isEditMode = false;
     let editProductId = null;
+
+    // Debounce function to limit the rate of function calls
+    function debounce(func, delay) {
+        let debounceTimer;
+        return function() {
+            const context = this;
+            const args = arguments;
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => func.apply(context, args), delay);
+        };
+    }
 
     // Open modal for adding new product
     openModalButton.addEventListener('click', () => {
@@ -479,6 +499,7 @@
         fetch("{% url 'edit_product' product_id=0 %}".replace('0', productId), {
             method: 'GET',
             headers: {
+                'X-CSRFToken': csrfToken,
                 'X-Requested-With': 'XMLHttpRequest'
             },
             credentials: 'same-origin'
@@ -526,8 +547,7 @@
         });
     }
 
-
-    // Handle form submission for editing
+    // Handle form submission for adding and editing
     productForm.addEventListener('submit', function(event) {
         if (isEditMode && editProductId) {
             event.preventDefault(); // Prevent default form submission
@@ -649,6 +669,189 @@
             });
         }
     });
+
+    // Search Functionality with Autocomplete
+    const searchInput = document.getElementById('searchInput');
+    const productTableBody = document.getElementById('productTableBody');
+
+    searchInput.addEventListener('input', debounce(function() {
+        const query = this.value.trim();
+        fetch("{% url 'search_products' %}?q=" + encodeURIComponent(query), {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Clear existing table body
+                productTableBody.innerHTML = '';
+                // Populate table with new data
+                data.products.forEach(product => {
+                    const row = document.createElement('tr');
+                    row.id = `product-row-${product.id}`;
+                    row.classList.add('hover:bg-gray-100', 'dark:hover:bg-gray-700');
+
+                    // Checkbox Cell
+                    const checkboxCell = document.createElement('td');
+                    checkboxCell.classList.add('w-4', 'px-4', 'py-3', 'whitespace-nowrap');
+                    checkboxCell.innerHTML = `
+                        <div class="flex items-center">
+                            <input id="checkbox-${product.id}" name="product_ids" value="${product.id}" type="checkbox" class="w-4 h-4 bg-gray-100 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                            <label for="checkbox-${product.id}" class="sr-only">Select product</label>
+                        </div>
+                    `;
+                    row.appendChild(checkboxCell);
+
+                    // Product Name Cell
+                    const productCell = document.createElement('th');
+                    productCell.scope = "row";
+                    productCell.classList.add('flex', 'items-center', 'px-4', 'py-2', 'font-medium', 'text-gray-900', 'whitespace-nowrap', 'dark:text-gray-500');
+                    productCell.innerHTML = `
+                        ${product.photo_url ? `
+                            <img 
+                                src="${product.photo_url}" 
+                                alt="${product.item_name}" 
+                                class="w-8 h-8 mr-3 object-cover rounded product-image cursor-pointer" 
+                                data-full-url="${product.photo_url}"
+                                title="Click to view full image"
+                            >
+                        ` : `
+                            <img 
+                                src="{% static 'images/placeholder.png' %}" 
+                                alt="${product.item_name}" 
+                                class="w-8 h-8 mr-3 object-cover rounded product-image cursor-pointer" 
+                                data-full-url="{% static 'images/placeholder.png' %}"
+                                title="Click to view full image"
+                            >
+                        `}
+                        ${product.item_name}
+                    `;
+                    row.appendChild(productCell);
+
+                    // Quantity Cell
+                    const quantityCell = document.createElement('td');
+                    quantityCell.classList.add('px-4', 'py-2', 'whitespace-nowrap');
+                    quantityCell.textContent = product.quantity;
+                    row.appendChild(quantityCell);
+
+                    // Supplier Cell
+                    const supplierCell = document.createElement('td');
+                    supplierCell.classList.add('px-4', 'py-2', 'whitespace-nowrap');
+                    supplierCell.textContent = product.supplier_name;
+                    row.appendChild(supplierCell);
+
+                    // Currency Code Cell
+                    const currencyCell = document.createElement('td');
+                    currencyCell.classList.add('px-4', 'py-2', 'whitespace-nowrap');
+                    currencyCell.textContent = product.currency_code;
+                    row.appendChild(currencyCell);
+
+                    // Retail Price Cell
+                    const priceCell = document.createElement('td');
+                    priceCell.classList.add('px-4', 'py-2', 'whitespace-nowrap');
+                    priceCell.textContent = `$${product.retail_price}`;
+                    row.appendChild(priceCell);
+
+                    // UOM Cell
+                    const uomCell = document.createElement('td');
+                    uomCell.classList.add('px-4', 'py-2', 'whitespace-nowrap');
+                    uomCell.textContent = product.uom;
+                    row.appendChild(uomCell);
+
+                    // Discountable (All) Cell
+                    const discountAllCell = document.createElement('td');
+                    discountAllCell.classList.add('px-4', 'py-2', 'whitespace-nowrap');
+                    discountAllCell.textContent = product.discountable_all;
+                    row.appendChild(discountAllCell);
+
+                    // Discountable (Members) Cell
+                    const discountMembersCell = document.createElement('td');
+                    discountMembersCell.classList.add('px-4', 'py-2', 'whitespace-nowrap');
+                    discountMembersCell.textContent = product.discountable_members;
+                    row.appendChild(discountMembersCell);
+
+                    // Active Cell
+                    const activeCell = document.createElement('td');
+                    activeCell.classList.add('px-4', 'py-2', 'whitespace-nowrap');
+                    activeCell.textContent = product.active;
+                    row.appendChild(activeCell);
+
+                    // Actions Cell
+                    const actionsCell = document.createElement('td');
+                    actionsCell.classList.add('px-4', 'py-2', 'whitespace-nowrap', 'flex', 'space-x-2');
+                    actionsCell.innerHTML = `
+                        <!-- Edit Button -->
+                        <button
+                            type="button"
+                            class="text-blue-600 hover:text-blue-800 focus:outline-none"
+                            onclick="editProduct('${product.id}')"
+                            title="Edit Product"
+                        >
+                            <!-- Edit Icon -->
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 18a1 1 0 01-1-1v-4.586l10.293-10.293a1 1 0 011.414 0l2.586 2.586a1 1 0 010 1.414L9.414 17H5z" />
+                            </svg>
+                        </button>
+
+                        <!-- Individual Delete Button -->
+                        <button
+                            type="button"
+                            class="text-red-600 hover:text-red-800 focus:outline-none"
+                            onclick="deleteProduct('${product.id}')"
+                            title="Delete Product"
+                        >
+                            <!-- Delete Icon -->
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M6 3V4H4V6H16V4H14V3H6ZM6 6V15C6 16.1046 6.89543 17 8 17H12C13.1046 17 14 16.1046 14 15V6H6Z" />
+                            </svg>
+                        </button>
+                    `;
+                    row.appendChild(actionsCell);
+
+                    // Append the row to the table body
+                    productTableBody.appendChild(row);
+                });
+
+                // Re-attach event listeners for the new images
+                document.querySelectorAll('.product-image').forEach(function(image) {
+                    image.addEventListener('click', function() {
+                        const fullImageUrl = this.getAttribute('data-full-url');
+                        const altText = this.getAttribute('alt');
+                        Swal.fire({
+                            title: altText,
+                            imageUrl: fullImageUrl,
+                            imageAlt: altText,
+                            showCloseButton: true,
+                            showConfirmButton: false,
+                            width: 'auto',
+                            heightAuto: true,
+                            customClass: {
+                                popup: 'p-0 rounded-lg',
+                                image: 'object-contain w-auto h-96' // Adjust size as needed
+                            }
+                        });
+                    });
+                });
+            } else {
+                Swal.fire(
+                    'Error!',
+                    data.message || 'An error occurred while searching.',
+                    'error'
+                );
+            }
+        })
+        .catch((error) => {
+            Swal.fire(
+                'Error!',
+                'An error occurred while searching.',
+                'error'
+            );
+        });
+    }, 300)); // Debounce delay of 300ms
 
     // Display SweetAlert2 notifications based on Django messages
     {% if messages %}
