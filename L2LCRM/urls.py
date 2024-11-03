@@ -8,6 +8,7 @@ urlpatterns = [
     path('', include('IAM.urls')),
     path('inventory/', include('inventory.urls')),
     path('suppliers/', include('suppliers.urls')),
+    path('patients/', include('patients.urls')),
 ]
 
 # Add this line to serve media files during development

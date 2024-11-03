@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-hv4r4f2fi)uzu8nl#)m2*5^z)4^cgsp0xg@4%hklgqel@o0bec
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['app.leaftolife.com.sg', 'localhost:8000']
+ALLOWED_HOSTS = ['app.leaftolife.com.sg', 'localhost']
 
 
 # Application definition
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'menu',
     'inventory',
     'suppliers',
+    'patients',
 ]
 
 MIDDLEWARE = [
