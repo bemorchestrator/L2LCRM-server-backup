@@ -26,9 +26,7 @@ SECRET_KEY = 'django-insecure-hv4r4f2fi)uzu8nl#)m2*5^z)4^cgsp0xg@4%hklgqel@o0bec
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['app.leaftolife.com.sg', 'localhost']
-
-LOGIN_URL = 'login'
+ALLOWED_HOSTS = ['app.leaftolife.com.sg', 'localhost:8000']
 
 
 # Application definition
@@ -86,7 +84,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'L2LCRM',  
-        'USER': 'postgres',
+        'USER': 'bemorchestrator',
         'PASSWORD': 'digitalmission2126',
         'HOST': 'localhost',  # Set to your database host
         'PORT': '5432',       # Default PostgreSQL port
@@ -130,6 +128,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
